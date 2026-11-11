@@ -43,7 +43,11 @@ describe("Relworx SDK", () => {
   });
 
   it("uses wallet balance and transaction endpoints", async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response("{}", { status: 200 }));
+    // Each fetch call must receive a new Response. Response bodies are streams
+    // and can only be consumed once; reusing one mock Response is unlike fetch().
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async () =>
+      new Response("{}", { status: 200 }),
+    );
     const sdk = createRelworx({ ...config, fetch: fetchMock });
     await sdk.balance.get("ugx");
     await sdk.transactions.status("internal-123");
